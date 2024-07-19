@@ -1,9 +1,11 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-('url'); 
 import searches from './routes/repositories.js';
-const port = process.env.PORT;
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+const port = process.env.PORT || 8000;
 
 // Get the directory name
 const __filename = fileURLToPath(import.meta.url);
@@ -15,6 +17,6 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
-app.use('/api', searches)
+app.use('/api', searches);
 
 app.listen(port, () => console.log(`Server is running on port ${port}`));

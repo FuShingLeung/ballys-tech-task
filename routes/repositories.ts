@@ -2,7 +2,7 @@ import express from 'express';
 import {
   fetchRepositories,
   fetchById,
-} from '../controllers/repositoryController.js';
+} from '../controllers/repositoryController';
 
 const router = express.Router();
 

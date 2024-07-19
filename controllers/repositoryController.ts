@@ -1,16 +1,25 @@
-// const GITHUB_ENDPOINT = process.env.GITHUB_ENDPOINT;
-// const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN
+import { Request, Response, NextFunction } from 'express';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const { GITHUB_ENDPOINT, GITHUB_API_TOKEN } = process.env;
 
-export const fetchRepositories = async (req, res, next) => {
+interface CustomError extends Error {
+  status?: number;
+}
+
+export const fetchRepositories = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const name = req.query.name;
 
   if (!name) {
-    const error = new Error(
+    const error: CustomError = new Error(
       'Please include a name when searching for repositories',
     );
-    error.status(400);
+    error.status = 400;
     return next(error);
   }
 
@@ -19,7 +28,7 @@ export const fetchRepositories = async (req, res, next) => {
     headers: {
       'Content-Type': 'application/vnd.github+json',
       Authorization: GITHUB_API_TOKEN,
-    },
+    } as Record<string, string>,
   });
 
   const repositories = await data.json();
@@ -31,14 +40,18 @@ export const fetchRepositories = async (req, res, next) => {
   res.status(200).json(repositories);
 };
 
-export const fetchById = async (req, res, next) => {
+export const fetchById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const id = req.query.id;
 
   if (!id) {
-    const error = new Error(
+    const error: CustomError = new Error(
       'Please include an ID when searching for a repository',
     );
-    error.status(400);
+    error.status = 400;
     return next(error);
   }
 
@@ -47,7 +60,7 @@ export const fetchById = async (req, res, next) => {
     headers: {
       'Content-Type': 'application/vnd.github+json',
       Authorization: GITHUB_API_TOKEN,
-    },
+    } as Record<string, string>,
   });
 
   const repository = await data.json();
