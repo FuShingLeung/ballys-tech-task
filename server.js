@@ -1,7 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-('url');
+('url'); 
+import searches from './routes/repositories.js';
 const port = process.env.PORT;
 
 // Get the directory name
@@ -12,5 +13,8 @@ const app = express();
 
 // setup static folder
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Routes
+app.use('/api', searches)
 
 app.listen(port, () => console.log(`Server is running on port ${port}`));
