@@ -28,7 +28,7 @@ const fetchRepositories = async (e) => {
     if (repositories.length > 0) {
       repositories.forEach((repository) => {
         const repositoryEl = document.createElement('div');
-        repositoryEl.textContent = repository.name;
+        repositoryEl.textContent = `${repository.name}, ${repository.id}`;
         output.appendChild(repositoryEl);
       });
     } else {
@@ -46,14 +46,13 @@ const fetchRepositories = async (e) => {
     );
 
     const data = await res.json();
-    const repository = data.items;
     output.innerHTML = '';
 
     if (data.message === 'Not Found') {
       output.innerHTML = `There are no repository with the id ${id}`;
     } else {
       const repositoryEl = document.createElement('div');
-      repositoryEl.textContent = data.name;
+      repositoryEl.textContent = `${data.name}, ${data.id}`;
       output.appendChild(repositoryEl);
     }
   }
