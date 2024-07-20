@@ -87,3 +87,39 @@ export const fetchById = async (
   res.status(200).json(repository);
 };
 
+export const fetchReadme = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { owner, repository } = req.query;
+
+  if (!owner || !repository) {
+    const error: CustomError = new Error(
+      'Please include both the owner name and the repository name when searching for a readme',
+    );
+    error.status = 400;
+    return next(error);
+  }
+
+  const response = await fetch(
+    `${GITHUB_ENDPOINT}/repos/${owner}/${repository}/readme`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/vnd.github+json',
+        Authorization: GITHUB_API_TOKEN,
+      } as Record<string, string>,
+    },
+  );
+
+  const readme = await response.json();
+
+  if (!readme) {
+    throw new Error(
+      `The repository with the name ${repository} does not have a readme`,
+    );
+  }
+
+  res.status(200).json(readme);
+};
