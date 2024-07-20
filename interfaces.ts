@@ -5,6 +5,7 @@ export interface Owner {
 export interface Repository {
   id: number;
   full_name: string;
+  name: string;
   html_url: string;
 }
 
