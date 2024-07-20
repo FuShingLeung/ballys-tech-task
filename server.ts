@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import searches from './routes/repositories.js';
+import searches from './src/routes/repositories';
 import * as dotenv from 'dotenv';
 dotenv.config();
 

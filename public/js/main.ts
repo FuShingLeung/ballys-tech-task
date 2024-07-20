@@ -1,4 +1,4 @@
-import { Repository } from '../../interfaces';
+import { Repository } from '../../src/interfaces/interfaces';
 
 const LOCAL_ENDPOINT = `http://localhost:8000`;
 

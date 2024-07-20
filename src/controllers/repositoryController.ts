@@ -2,8 +2,8 @@ import { Request, Response, NextFunction, query } from 'express';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { CustomError, Repository } from '../interfaces';
-import { objectToQueryString } from '../utils';
+import { CustomError, Repository } from '../interfaces/interfaces';
+import { objectToQueryString } from '../utils/utils';
 
 const { GITHUB_ENDPOINT, GITHUB_API_TOKEN } = process.env;
 
