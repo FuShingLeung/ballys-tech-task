@@ -1,10 +1,15 @@
-import { Request, Response, NextFunction, query } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { CustomError, Repository } from '../interfaces/interfaces';
-import { objectToQueryString } from '../utils/utils';
-import redisClient from '../config/redis';
+import {
+  objectToQueryString,
+  createError,
+  saveToCache,
+  fetchFromCache,
+  mapAndCacheRepository,
+} from '../utils/utils';
 
 const { GITHUB_ENDPOINT, GITHUB_API_TOKEN } = process.env;
 
@@ -24,20 +29,14 @@ export const fetchRepositories = async (
   const queryString = objectToQueryString(queryParameters);
 
   if (!queryString) {
-    const error: CustomError = new Error(
-      'Please include a name when searching for repositories',
+    return next(
+      createError('Please include a name when searching for repositories', 400),
     );
-    error.status = 400;
-    return next(error);
   }
 
   try {
     const cacheKey = queryString;
-    const cachedData = await redisClient.get(cacheKey);
-
-    if (cachedData) {
-      return res.status(200).json(JSON.parse(cachedData));
-    }
+    fetchFromCache(cacheKey, res, next);
 
     const response = await fetch(
       `${GITHUB_ENDPOINT}/search/repositories?${queryString}`,
@@ -47,44 +46,34 @@ export const fetchRepositories = async (
       },
     );
 
-    if (!response.ok && response.status === 403) {
-      console.log(response);
-      const errorData = await response.json();
-      const errorMessage = `GitHub API returned status code ${response.status} : API rate limit exceeded`;
-
-      const error: CustomError = new Error(errorMessage);
-      error.status = response.status;
-      console.log(error);
-      next(error);
+    if (!response.ok) {
+      if (response.status === 403) {
+        const errorMessage = `GitHub API returned status code ${response.status} : API rate limit exceeded`;
+        return next(createError(errorMessage, response.status));
+      }
+      return next(
+        createError(
+          `GitHub API returned status code ${response.status},`,
+          response.status,
+        ),
+      );
     }
 
     const listOfRepositories = await response.json();
 
-    if (!listOfRepositories) {
+    if (!listOfRepositories || !listOfRepositories.items) {
       throw new Error(
-        `The repository with the name ${queryParameters.name} does not exist`,
+        `There are no valid repositories with the name ${queryParameters.name}.`,
       );
     }
 
-    const repositories: Repository[] = [];
-    listOfRepositories.items.forEach((repository: Repository) => {
-      const cacheKey = repository.id.toString();
-      redisClient.set(cacheKey, JSON.stringify(repository));
+    const repositories = listOfRepositories.items.map(mapAndCacheRepository);
 
-      const newRepository: Repository = {
-        id: repository.id,
-        full_name: repository.full_name,
-        html_url: repository.html_url,
-        name: repository.name,
-      };
-      repositories.push(newRepository);
-    });
-
-    await redisClient.set(cacheKey, JSON.stringify(repositories));
+    saveToCache(cacheKey.toString(), JSON.stringify(repositories));
 
     res.status(200).json(repositories);
   } catch (error) {
-    next(`error: ${error}`);
+    next(error);
   }
 };
 
@@ -93,28 +82,31 @@ export const fetchById = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const id = req.query.id;
+  const id = req.query.id as string;
 
   if (!id) {
-    const error: CustomError = new Error(
-      'Please include an ID when searching for a repository',
+    return next(
+      createError('Please include an ID when searching for a repository', 400),
     );
-    error.status = 400;
-    return next(error);
   }
 
   try {
-    const cacheKey = id.toString();
-    const cachedData = await redisClient.get(cacheKey);
-
-    if (cachedData) {
-      return res.status(200).json(JSON.parse(cachedData));
-    }
+    const cacheKey = id;
+    fetchFromCache(cacheKey, res, next);
 
     const response = await fetch(`${GITHUB_ENDPOINT}/repositories/${id}`, {
       method: 'GET',
       headers: GITHUB_HEADERS,
     });
+
+    if (!response.ok) {
+      return next(
+        createError(
+          `GitHub API returned status code ${response.status}`,
+          response.status,
+        ),
+      );
+    }
 
     const repository = await response.json();
 
@@ -122,7 +114,7 @@ export const fetchById = async (
       throw new Error(`The repository with the id ${id} does not exist`);
     }
 
-    await redisClient.set(cacheKey, JSON.stringify(repository));
+    saveToCache(cacheKey, JSON.stringify(repository));
 
     res.status(200).json(repository);
   } catch (error) {
@@ -138,11 +130,12 @@ export const fetchReadme = async (
   const { owner, repository } = req.query;
 
   if (!owner || !repository) {
-    const error: CustomError = new Error(
-      'Please include both the owner name and the repository name when searching for a readme',
+    return next(
+      createError(
+        'Please include both the owner name and the repository name when searching for a readme',
+        400,
+      ),
     );
-    error.status = 400;
-    return next(error);
   }
 
   try {
@@ -153,6 +146,15 @@ export const fetchReadme = async (
         headers: GITHUB_HEADERS,
       },
     );
+
+    if (!response.ok) {
+      return next(
+        createError(
+          `GitHub API returned status code ${response.status}`,
+          response.status,
+        ),
+      );
+    }
 
     const readme = await response.json();
 

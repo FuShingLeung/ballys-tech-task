@@ -7,8 +7,11 @@ export interface Repository {
   full_name: string;
   name: string;
   html_url: string;
+  forks: number;
 }
 
 export interface CustomError extends Error {
   status?: number;
 }
+
+export interface GitHubResponse {}
