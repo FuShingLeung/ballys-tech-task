@@ -32,8 +32,7 @@ export const fetchRepositories = async (
   }
 
   try {
-    console.log(queryString);
-    const cacheKey = `repos:${queryString}`;
+    const cacheKey = queryString;
     const cachedData = await redisClient.get(cacheKey);
 
     if (cachedData) {
@@ -67,17 +66,21 @@ export const fetchRepositories = async (
       );
     }
 
-    const repositories = listOfRepositories.items.map(
-      (repository: Repository) => ({
+    const repositories: Repository[] = [];
+    listOfRepositories.items.forEach((repository: Repository) => {
+      const cacheKey = repository.id.toString();
+      redisClient.set(cacheKey, JSON.stringify(repository));
+
+      const newRepository: Repository = {
         id: repository.id,
         full_name: repository.full_name,
         html_url: repository.html_url,
-      }),
-    );
-
-    await redisClient.set(cacheKey, JSON.stringify(repositories), {
-      EX: 3600,
+        name: repository.name,
+      };
+      repositories.push(newRepository);
     });
+
+    await redisClient.set(cacheKey, JSON.stringify(repositories));
 
     res.status(200).json(repositories);
   } catch (error) {
@@ -101,6 +104,13 @@ export const fetchById = async (
   }
 
   try {
+    const cacheKey = id.toString();
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+      return res.status(200).json(JSON.parse(cachedData));
+    }
+
     const response = await fetch(`${GITHUB_ENDPOINT}/repositories/${id}`, {
       method: 'GET',
       headers: GITHUB_HEADERS,
@@ -111,6 +121,8 @@ export const fetchById = async (
     if (!repository) {
       throw new Error(`The repository with the id ${id} does not exist`);
     }
+
+    await redisClient.set(cacheKey, JSON.stringify(repository));
 
     res.status(200).json(repository);
   } catch (error) {
