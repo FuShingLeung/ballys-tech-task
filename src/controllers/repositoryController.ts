@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, query } from 'express';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -36,7 +36,8 @@ export const fetchRepositories = async (
 
   try {
     const cacheKey = queryString;
-    fetchFromCache(cacheKey, res, next);
+    const isCached = await fetchFromCache(cacheKey, res, next);
+    if (isCached) return;
 
     const response = await fetch(
       `${GITHUB_ENDPOINT}/search/repositories?${queryString}`,
@@ -92,7 +93,8 @@ export const fetchById = async (
 
   try {
     const cacheKey = id;
-    fetchFromCache(cacheKey, res, next);
+    const isCached = await fetchFromCache(cacheKey, res, next);
+    if (isCached) return;
 
     const response = await fetch(`${GITHUB_ENDPOINT}/repositories/${id}`, {
       method: 'GET',
@@ -127,45 +129,50 @@ export const fetchReadme = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { owner, repository } = req.query;
+  const queryParameters = req.query;
 
-  if (!owner || !repository) {
+  if (queryParameters.id) {
+    return fetchById(req, res, next);
+  } 
+  const { owner, repository } = queryParameters;
+
+  if (owner && repository) {
+    try {
+      const response = await fetch(
+        `${GITHUB_ENDPOINT}/repos/${queryParameters.owner}/${queryParameters.repository}/readme`,
+        {
+          method: 'GET',
+          headers: GITHUB_HEADERS,
+        },
+      );
+
+      if (!response.ok) {
+        return next(
+          createError(
+            `GitHub API returned status code ${response.status}`,
+            response.status,
+          ),
+        );
+      }
+
+      const readme = await response.json();
+
+      if (!readme) {
+        throw new Error(
+          `The repository with the name ${queryParameters.repository} does not have a readme`,
+        );
+      }
+
+      res.status(200).json(readme);
+    } catch (error) {
+      next(error);
+    }
+  } else {
     return next(
       createError(
-        'Please include both the owner name and the repository name when searching for a readme',
+        'Please include both the owner name and the repository name or an ID when searching for a readme',
         400,
       ),
     );
-  }
-
-  try {
-    const response = await fetch(
-      `${GITHUB_ENDPOINT}/repos/${owner}/${repository}/readme`,
-      {
-        method: 'GET',
-        headers: GITHUB_HEADERS,
-      },
-    );
-
-    if (!response.ok) {
-      return next(
-        createError(
-          `GitHub API returned status code ${response.status}`,
-          response.status,
-        ),
-      );
-    }
-
-    const readme = await response.json();
-
-    if (!readme) {
-      throw new Error(
-        `The repository with the name ${repository} does not have a readme`,
-      );
-    }
-
-    res.status(200).json(readme);
-  } catch (error) {
-    next(error);
   }
 };
