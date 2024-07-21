@@ -1,10 +1,11 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import searches from './src/routes/repositories';
 import * as dotenv from 'dotenv';
-import errorHandler from './src/middleware/error';
 dotenv.config();
+
+import errorHandler from './src/middleware/error';
+import searches from './src/routes/repositories';
 
 const port = process.env.PORT || 8000;
 

@@ -4,6 +4,7 @@ dotenv.config();
 
 import { CustomError, Repository } from '../interfaces/interfaces';
 import { objectToQueryString } from '../utils/utils';
+import redisClient from '../config/redis';
 
 const { GITHUB_ENDPOINT, GITHUB_API_TOKEN } = process.env;
 
@@ -31,6 +32,14 @@ export const fetchRepositories = async (
   }
 
   try {
+    console.log(queryString);
+    const cacheKey = `repos:${queryString}`;
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+      return res.status(200).json(JSON.parse(cachedData));
+    }
+
     const response = await fetch(
       `${GITHUB_ENDPOINT}/search/repositories?${queryString}`,
       {
@@ -65,6 +74,10 @@ export const fetchRepositories = async (
         html_url: repository.html_url,
       }),
     );
+
+    await redisClient.set(cacheKey, JSON.stringify(repositories), {
+      EX: 3600,
+    });
 
     res.status(200).json(repositories);
   } catch (error) {
