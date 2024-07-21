@@ -1,10 +1,11 @@
 config:
   target: http://localhost:8000
   phases:
-    - duration: 20
-      arrivalRate: 5
+    - duration: 10
+      arrivalRate: 100
       name: Startup phase
+
 scenarios:
   - flow:
-    - get:
-        url: "/repositories?name=bob"
+      - get:
+          url: '/api/repositories?name=bob'

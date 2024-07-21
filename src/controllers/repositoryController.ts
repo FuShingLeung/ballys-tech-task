@@ -7,6 +7,11 @@ import { objectToQueryString } from '../utils/utils';
 
 const { GITHUB_ENDPOINT, GITHUB_API_TOKEN } = process.env;
 
+const GITHUB_HEADERS = {
+  'Content-Type': 'application/vnd.github+json',
+  Authorization: GITHUB_API_TOKEN,
+} as Record<string, string>;
+
 export const fetchRepositories = async (
   req: Request,
   res: Response,
@@ -25,34 +30,46 @@ export const fetchRepositories = async (
     return next(error);
   }
 
-  const response = await fetch(
-    `${GITHUB_ENDPOINT}/search/repositories?${queryString}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/vnd.github+json',
-        Authorization: GITHUB_API_TOKEN,
-      } as Record<string, string>,
-    },
-  );
-
-  const listOfRepositories = await response.json();
-
-  if (!listOfRepositories) {
-    throw new Error(
-      `The repository with the name ${queryParameters.name} does not exist`,
+  try {
+    const response = await fetch(
+      `${GITHUB_ENDPOINT}/search/repositories?${queryString}`,
+      {
+        method: 'GET',
+        headers: GITHUB_HEADERS,
+      },
     );
+
+    if (!response.ok && response.status === 403) {
+      console.log(response);
+      const errorData = await response.json();
+      const errorMessage = `GitHub API returned status code ${response.status} : API rate limit exceeded`;
+
+      const error: CustomError = new Error(errorMessage);
+      error.status = response.status;
+      console.log(error);
+      next(error);
+    }
+
+    const listOfRepositories = await response.json();
+
+    if (!listOfRepositories) {
+      throw new Error(
+        `The repository with the name ${queryParameters.name} does not exist`,
+      );
+    }
+
+    const repositories = listOfRepositories.items.map(
+      (repository: Repository) => ({
+        id: repository.id,
+        full_name: repository.full_name,
+        html_url: repository.html_url,
+      }),
+    );
+
+    res.status(200).json(repositories);
+  } catch (error) {
+    next(`error: ${error}`);
   }
-
-  const repositories = listOfRepositories.items.map(
-    (repository: Repository) => ({
-      id: repository.id,
-      full_name: repository.full_name,
-      html_url: repository.html_url,
-    }),
-  );
-
-  res.status(200).json(repositories);
 };
 
 export const fetchById = async (
@@ -70,21 +87,22 @@ export const fetchById = async (
     return next(error);
   }
 
-  const response = await fetch(`${GITHUB_ENDPOINT}/repositories/${id}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/vnd.github+json',
-      Authorization: GITHUB_API_TOKEN,
-    } as Record<string, string>,
-  });
+  try {
+    const response = await fetch(`${GITHUB_ENDPOINT}/repositories/${id}`, {
+      method: 'GET',
+      headers: GITHUB_HEADERS,
+    });
 
-  const repository = await response.json();
+    const repository = await response.json();
 
-  if (!repository) {
-    throw new Error(`The repository with the id ${id} does not exist`);
+    if (!repository) {
+      throw new Error(`The repository with the id ${id} does not exist`);
+    }
+
+    res.status(200).json(repository);
+  } catch (error) {
+    next(error);
   }
-
-  res.status(200).json(repository);
 };
 
 export const fetchReadme = async (
@@ -102,24 +120,25 @@ export const fetchReadme = async (
     return next(error);
   }
 
-  const response = await fetch(
-    `${GITHUB_ENDPOINT}/repos/${owner}/${repository}/readme`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/vnd.github+json',
-        Authorization: GITHUB_API_TOKEN,
-      } as Record<string, string>,
-    },
-  );
-
-  const readme = await response.json();
-
-  if (!readme) {
-    throw new Error(
-      `The repository with the name ${repository} does not have a readme`,
+  try {
+    const response = await fetch(
+      `${GITHUB_ENDPOINT}/repos/${owner}/${repository}/readme`,
+      {
+        method: 'GET',
+        headers: GITHUB_HEADERS,
+      },
     );
-  }
 
-  res.status(200).json(readme);
+    const readme = await response.json();
+
+    if (!readme) {
+      throw new Error(
+        `The repository with the name ${repository} does not have a readme`,
+      );
+    }
+
+    res.status(200).json(readme);
+  } catch (error) {
+    next(error);
+  }
 };
