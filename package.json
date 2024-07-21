@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "tsx --watch server.ts"
+    "dev": "tsx --watch server.ts",
+    "load-test": "artillery run tests/api_load.yml"
   },
   "keywords": [],
   "author": "",
