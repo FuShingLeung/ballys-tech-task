@@ -1,0 +1,161 @@
+{
+	"info": {
+		"_postman_id": "6fa49673-4775-4087-a94b-add86248cb31",
+		"name": "Tech task postman collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37157052",
+		"_collection_link": "https://martian-sunset-674682.postman.co/workspace/New-Team-Workspace~ffd76b36-aa92-42fc-af28-bdabdab885e7/collection/23505048-6fa49673-4775-4087-a94b-add86248cb31?action=share&source=collection_link&creator=37157052"
+	},
+	"item": [
+		{
+			"name": "Search for repositories",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "11c59173-446b-402c-bc3e-f5e5e0087e37",
+						"type": "text"
+					},
+					{
+						"key": "Date",
+						"value": "2024-02-23",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "javascript"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/repositories?name=bob",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"repositories"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "bob"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search for repositories with search parameters",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "11c59173-446b-402c-bc3e-f5e5e0087e37",
+						"type": "text"
+					},
+					{
+						"key": "Date",
+						"value": "2024-02-23",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "javascript"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/repositories?name=bob",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"repositories"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "bob"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search for repository with id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search for readme with id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search for readme with owner and repository name",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/readme?owner=am-rita&repository=polqa",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"readme"
+					],
+					"query": [
+						{
+							"key": "owner",
+							"value": "am-rita"
+						},
+						{
+							"key": "repository",
+							"value": "polqa"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
