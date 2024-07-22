@@ -2,7 +2,6 @@ import { Request, Response, NextFunction, query } from 'express';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { CustomError, Repository } from '../interfaces/interfaces';
 import {
   objectToQueryString,
   createError,
@@ -24,15 +23,16 @@ export const fetchRepositories = async (
   next: NextFunction,
 ) => {
   const queryParameters = req.query;
-  delete Object.assign(queryParameters, { q: queryParameters.name }).name;
 
-  const queryString = objectToQueryString(queryParameters);
-
-  if (!queryString) {
+  if (Object.keys(queryParameters).length === 0) {
     return next(
       createError('Please include a name when searching for repositories', 400),
     );
   }
+
+  delete Object.assign(queryParameters, { q: queryParameters.name }).name;
+
+  const queryString = objectToQueryString(queryParameters);
 
   try {
     const cacheKey = queryString;
@@ -133,7 +133,7 @@ export const fetchReadme = async (
 
   if (queryParameters.id) {
     return fetchById(req, res, next);
-  } 
+  }
   const { owner, repository } = queryParameters;
 
   if (owner && repository) {
