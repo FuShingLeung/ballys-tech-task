@@ -10,7 +10,8 @@ import {
   mapAndCacheRepository,
 } from '../utils/utils';
 
-const { GITHUB_ENDPOINT, GITHUB_API_TOKEN } = process.env;
+const { GITHUB_API_TOKEN } = process.env;
+const GITHUB_ENDPOINT = 'https://api.github.com';
 
 const GITHUB_HEADERS = {
   'Content-Type': 'application/vnd.github+json',
