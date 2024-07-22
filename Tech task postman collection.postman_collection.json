@@ -4,7 +4,7 @@
 		"name": "Tech task postman collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37157052",
-		"_collection_link": "https://martian-sunset-674682.postman.co/workspace/New-Team-Workspace~ffd76b36-aa92-42fc-af28-bdabdab885e7/collection/23505048-6fa49673-4775-4087-a94b-add86248cb31?action=share&source=collection_link&creator=37157052"
+		"_collection_link": "https://martian-sunset-674682.postman.co/workspace/ffd76b36-aa92-42fc-af28-bdabdab885e7/collection/23505048-6fa49673-4775-4087-a94b-add86248cb31?action=share&source=collection_link&creator=37157052"
 	},
 	"item": [
 		{
@@ -85,7 +85,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8000/api/repositories?name=bob",
+					"raw": "http://localhost:8000/api/repositories?name=bob&sort=stars&order=asc&per_page=10&page=3",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -99,6 +99,22 @@
 						{
 							"key": "name",
 							"value": "bob"
+						},
+						{
+							"key": "sort",
+							"value": "stars"
+						},
+						{
+							"key": "order",
+							"value": "asc"
+						},
+						{
+							"key": "per_page",
+							"value": "10"
+						},
+						{
+							"key": "page",
+							"value": "3"
 						}
 					]
 				}
@@ -111,7 +127,22 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": ""
+					"raw": "http://localhost:8000/api/repositorydetails?id=13339330",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"repositorydetails"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "13339330"
+						}
+					]
 				}
 			},
 			"response": []
@@ -122,7 +153,22 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": ""
+					"raw": "http://localhost:8000/api/readme?id=13339330",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"readme"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "13339330"
+						}
+					]
 				}
 			},
 			"response": []
